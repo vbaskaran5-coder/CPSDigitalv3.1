@@ -45,17 +45,12 @@ import PayoutToday from './pages/Console/PayoutToday'; // Component used within 
 // Business Panel Section
 import BusinessPanelLayout from './pages/BusinessPanel/BusinessPanelLayout';
 import BusinessPanelLoginPage from './pages/BusinessPanel/BusinessPanelLogin';
-// Removed BusinessPanelDashboard import as it wasn't used for routing
 import ConsoleProfiles from './pages/BusinessPanel/ConsoleProfiles';
 import ConsoleProfileDetail from './pages/BusinessPanel/ConsoleProfileDetail';
 import EditSeason from './pages/BusinessPanel/EditSeason';
 import RouteManagerProfiles from './pages/BusinessPanel/RouteManagerProfiles';
 import BookingManagement from './pages/BusinessPanel/BookingManagement';
 import TerritoryManagement from './pages/BusinessPanel/TerritoryManagement';
-// Removed AddUpsell, UpsellMenuPage imports as they might not be directly routed or handled differently
-
-// Migration Tool
-import MigrationRunner from './pages/MigrationRunner';
 
 import { Worker } from './types';
 
@@ -257,8 +252,6 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      {/* --- Migration Tool Route --- */}
-      <Route path="/migrate" element={<MigrationRunner />} />
       {/* --- Business Panel Routes --- */}
       <Route
         path="/business-panel/login"

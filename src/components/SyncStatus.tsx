@@ -1,15 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, CheckCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Database } from 'lucide-react';
 import { useJobs } from '../contexts/JobContext';
-import { getStorageItem } from '../lib/localStorage';
+import { supabase } from '../lib/supabase';
 
 const SyncStatus: React.FC = () => {
   const { syncJobs, loading, error } = useJobs();
   const [showStatus, setShowStatus] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
-  const [lastSynced, setLastSynced] = useState<string | null>(
-    getStorageItem('lastSynced', null)
-  );
+  const [isConnected, setIsConnected] = useState(true);
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const { error } = await supabase.from('master_bookings').select('count', { count: 'exact', head: true });
+        setIsConnected(!error);
+      } catch {
+        setIsConnected(false);
+      }
+    };
+
+    checkConnection();
+    const interval = setInterval(checkConnection, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (showStatus) {
@@ -20,18 +34,8 @@ const SyncStatus: React.FC = () => {
     }
   }, [showStatus]);
 
-  const formatLastSynced = () => {
-    if (!lastSynced) return 'Never synced';
-    const date = new Date(lastSynced);
-    return `Last synced: ${date.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    })}`;
-  };
-
   return (
     <>
-      {/* Sync status toast */}
       {showStatus && (
         <div className="fixed bottom-24 left-0 right-0 mx-auto w-5/6 max-w-sm bg-white rounded-lg shadow-lg p-4 z-20 flex items-center animate-fade-in">
           {error ? (
@@ -41,7 +45,10 @@ const SyncStatus: React.FC = () => {
           )}
           <div className="flex-1">
             <p className="font-medium">{syncMessage}</p>
-            <p className="text-xs text-gray-500">{formatLastSynced()}</p>
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Database size={12} />
+              <span>{isConnected ? 'Connected to Supabase' : 'Connection issues'}</span>
+            </div>
           </div>
         </div>
       )}

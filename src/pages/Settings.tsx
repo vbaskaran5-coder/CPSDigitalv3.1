@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Save,
   RefreshCw,
@@ -6,25 +6,36 @@ import {
   Moon,
   LayoutGrid,
   AlertTriangle,
+  Database,
 } from 'lucide-react';
 import { AppSettings } from '../types';
-import {
-  getStorageItem,
-  setStorageItem,
-  STORAGE_KEYS,
-} from '../lib/localStorage';
+import { AuthService } from '../services/auth.service';
+import { supabase } from '../lib/supabase';
 
 const Settings: React.FC = () => {
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    return getStorageItem('cps_settings', {
-      syncFrequency: 30,
-      notificationsEnabled: true,
-      darkMode: false,
-      defaultView: 'list',
-    });
+  const [settings, setSettings] = useState<AppSettings>({
+    syncFrequency: 30,
+    notificationsEnabled: true,
+    darkMode: false,
+    defaultView: 'list',
   });
-
   const [saved, setSaved] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
+
+  useEffect(() => {
+    checkConnection();
+    const interval = setInterval(checkConnection, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const checkConnection = async () => {
+    try {
+      const { error } = await supabase.from('master_bookings').select('count', { count: 'exact', head: true });
+      setConnectionStatus(error ? 'disconnected' : 'connected');
+    } catch {
+      setConnectionStatus('disconnected');
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -43,7 +54,6 @@ const Settings: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setStorageItem('cps_settings', settings);
     setSaved(true);
 
     setTimeout(() => {
@@ -51,16 +61,10 @@ const Settings: React.FC = () => {
     }, 3000);
   };
 
-  const clearAllData = () => {
-    if (
-      window.confirm(
-        'Are you sure you want to clear all local data? This will remove all jobs and settings.'
-      )
-    ) {
-      localStorage.removeItem(STORAGE_KEYS.BOOKINGS);
-      localStorage.removeItem('cps_settings');
-      localStorage.removeItem('lastSynced');
-      window.location.reload();
+  const handleSignOut = async () => {
+    if (window.confirm('Are you sure you want to sign out?')) {
+      await AuthService.logout();
+      window.location.href = '/';
     }
   };
 
@@ -69,6 +73,25 @@ const Settings: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm">
         <form onSubmit={handleSubmit} className="p-4">
           <h2 className="text-xl font-bold mb-4">Settings</h2>
+
+          <div className="border-b pb-4 mb-4">
+            <h3 className="font-medium text-gray-700 mb-3 flex items-center">
+              <Database size={18} className="mr-2" /> Database Connection
+            </h3>
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
+              <div className={`w-3 h-3 rounded-full ${
+                connectionStatus === 'connected' ? 'bg-green-500' :
+                connectionStatus === 'disconnected' ? 'bg-red-500' : 'bg-yellow-500'
+              }`} />
+              <span className="text-sm">
+                {connectionStatus === 'connected' ? 'Connected to Supabase' :
+                 connectionStatus === 'disconnected' ? 'Connection issues' : 'Checking connection...'}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              All data is automatically synced with the cloud database in real-time.
+            </p>
+          </div>
 
           <div className="border-b pb-4 mb-4">
             <h3 className="font-medium text-gray-700 mb-3 flex items-center">
@@ -85,16 +108,12 @@ const Settings: React.FC = () => {
                 value={settings.syncFrequency}
                 onChange={handleChange}
                 className="input"
+                disabled
               >
-                <option value="0">Never (Manual only)</option>
-                <option value="15">Every 15 minutes</option>
-                <option value="30">Every 30 minutes</option>
-                <option value="60">Every hour</option>
-                <option value="120">Every 2 hours</option>
+                <option value="0">Real-time (Supabase)</option>
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                How often the app should automatically sync with the central
-                database.
+                Data syncs automatically using Supabase real-time subscriptions.
               </p>
             </div>
           </div>
@@ -134,11 +153,12 @@ const Settings: React.FC = () => {
                   checked={settings.darkMode}
                   onChange={handleChange}
                   className="mr-2 h-4 w-4"
+                  disabled
                 />
-                <span>Dark Mode</span>
+                <span>Dark Mode (Coming soon)</span>
               </label>
               <p className="text-xs text-gray-500 mt-1 ml-6">
-                Use dark theme for the app (Coming soon).
+                Use dark theme for the app.
               </p>
             </div>
           </div>
@@ -167,20 +187,19 @@ const Settings: React.FC = () => {
 
           <div className="border-b pb-4 mb-4">
             <h3 className="font-medium text-gray-700 mb-3 flex items-center">
-              <AlertTriangle size={18} className="mr-2 text-cps-red" /> Danger
-              Zone
+              <AlertTriangle size={18} className="mr-2 text-cps-red" /> Account
             </h3>
 
             <div className="mb-4">
               <button
                 type="button"
-                onClick={clearAllData}
+                onClick={handleSignOut}
                 className="bg-cps-red text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
               >
-                Clear All Local Data
+                Sign Out
               </button>
               <p className="text-xs text-gray-500 mt-1">
-                This will remove all locally stored jobs and settings.
+                Sign out of your account and return to the login screen.
               </p>
             </div>
           </div>
@@ -200,7 +219,7 @@ const Settings: React.FC = () => {
       </div>
 
       <div className="mt-6 text-center text-sm text-gray-500">
-        <p>Digital Logsheet v0.1.0</p>
+        <p>Digital Logsheet v2.0.0 (Supabase)</p>
         <p>© 2025 Canadian Property Stars</p>
       </div>
     </div>

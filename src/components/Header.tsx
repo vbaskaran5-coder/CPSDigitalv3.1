@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
 import { getCurrentDate } from '../lib/date';
+import { AuthService } from '../services/auth.service';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showMenu, setShowMenu] = useState(false);
+  const [contractor, setContractor] = useState<any>({});
   const isRootPath = location.pathname === '/';
 
-  const contractor = JSON.parse(localStorage.getItem('contractor') || '{}');
+  useEffect(() => {
+    const loadContractor = async () => {
+      const session = await AuthService.getSession();
+      if (session?.userType === 'worker') {
+        setContractor(session.profile);
+      }
+    };
+    loadContractor();
+  }, []);
 
   return (
     <>

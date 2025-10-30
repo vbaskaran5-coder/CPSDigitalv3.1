@@ -1,6 +1,6 @@
 // src/lib/hardcodedData.ts
 
-import { PayoutLogicSettings, STORAGE_KEYS } from '../types'; // Import STORAGE_KEYS type
+import { PayoutLogicSettings } from '../types';
 
 // Define Base Services (sold at the door)
 export interface BaseServiceOption {
@@ -30,7 +30,6 @@ export interface HardcodedSeason {
   id: string; // e.g., 'west-aeration', 'east-sealing'
   name: string; // e.g., 'Aeration', 'Summer Sealing'
   type: 'Individual' | 'Team' | 'Service'; // Simplified types
-  storageKey: keyof typeof STORAGE_KEYS; // <<< ADDED THIS
   doorServices: BaseService[]; // Services sold directly on logsheet (New Client)
   availableUpsellIds: string[]; // IDs of upsells possible for this season
   hasPayoutLogic: boolean; // Does this season type need editable payout logic?
@@ -129,7 +128,6 @@ const regions: Region[] = [
         id: 'west-aeration',
         name: 'Aeration',
         type: 'Individual',
-        storageKey: 'BOOKINGS_WEST_AERATION', // <<< UPDATED
         doorServices: [aerationService],
         availableUpsellIds: [
           'star-plan-pro',
@@ -142,7 +140,6 @@ const regions: Region[] = [
         id: 'west-spring-rejuv',
         name: 'Spring Rejuv',
         type: 'Team',
-        storageKey: 'BOOKINGS_WEST_SPRING_REJUV', // <<< UPDATED
         doorServices: [
           aerationService,
           dethatchingService,
@@ -157,7 +154,6 @@ const regions: Region[] = [
         id: 'west-fall-rejuv',
         name: 'Fall Rejuv',
         type: 'Team',
-        storageKey: 'BOOKINGS_WEST_FALL_REJUV', // <<< UPDATED
         doorServices: [
           aerationService,
           dethatchingService,
@@ -172,7 +168,6 @@ const regions: Region[] = [
         id: 'west-service',
         name: 'Service',
         type: 'Service',
-        storageKey: 'BOOKINGS_WEST_SERVICE', // <<< UPDATED
         doorServices: [],
         availableUpsellIds: [],
         hasPayoutLogic: false,
@@ -187,7 +182,6 @@ const regions: Region[] = [
         id: 'central-aeration',
         name: 'Aeration',
         type: 'Individual',
-        storageKey: 'BOOKINGS_CENTRAL_AERATION', // <<< UPDATED
         doorServices: [aerationService],
         availableUpsellIds: ['window-cleaning', 'window-cleaning-plus'],
         hasPayoutLogic: true,
@@ -196,7 +190,6 @@ const regions: Region[] = [
         id: 'central-cleaning',
         name: 'Summer Cleaning',
         type: 'Team',
-        storageKey: 'BOOKINGS_CENTRAL_CLEANING', // <<< UPDATED
         doorServices: [windowCleaningService, windowCleaningPlusService], // Options between these
         availableUpsellIds: ['window-cleaning', 'window-cleaning-plus'],
         hasPayoutLogic: true,
@@ -221,7 +214,6 @@ const regions: Region[] = [
         id: 'east-aeration',
         name: 'Aeration',
         type: 'Individual',
-        storageKey: 'BOOKINGS_EAST_AERATION', // <<< UPDATED
         doorServices: [aerationService],
         availableUpsellIds: ['driveway-sealing', 'hot-asphalt-ramp'],
         hasPayoutLogic: true,
@@ -230,7 +222,6 @@ const regions: Region[] = [
         id: 'east-sealing',
         name: 'Summer Sealing',
         type: 'Team',
-        storageKey: 'BOOKINGS_EAST_SEALING', // <<< UPDATED
         doorServices: [sealStarService, sealStarPlusService, rampService], // Options between these
         availableUpsellIds: ['driveway-sealing', 'hot-asphalt-ramp'],
         hasPayoutLogic: true,
